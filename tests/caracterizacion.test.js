@@ -64,7 +64,7 @@ for (const impl of IMPLS) {
       // 13.000.000 + (5.800.000 + 6.300.000) / 2 × (14 − 2) = 85.600.000
       assert.match(t, /Promedio por carrera \(2 con gasto\)\$ 6\.050\.000Cierre estimado \(12 restantes\)\$ 85\.600\.000/);
       assert.match(t, /Contra el presupuesto de \$ 20\.500\.000: te pasarías \$ 65\.100\.000/);
-      a.changeEl(a.doc.querySelector('input[onchange*="setTot"], input[data-act="setTot"]'), "0");
+      a.changeEl(a.doc.querySelector('input[onchange*="setTot"], input[data-change="setTot"]'), "0");
       assert.match(a.text(), /Ingresá la cantidad de carreras de la temporada/);
     });
 

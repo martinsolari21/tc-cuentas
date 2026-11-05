@@ -4,13 +4,15 @@ import { readFileSync } from "node:fs";
 import { JSDOM } from "jsdom";
 
 const root = new URL("../", import.meta.url);
-const html = readFileSync(new URL("index.html", root), "utf8").replace(/<script\b[\s\S]*?<\/script>/g, "");
+const page = (f) => readFileSync(new URL(f, root), "utf8").replace(/<script\b[\s\S]*?<\/script>/g, "");
+// La versión original se prueba con su index.html de entonces (botones con onclick en línea).
+const HTML = { original: page("tests/legacy/index.legacy.html"), nuevo: page("index.html") };
 const legacyCode = readFileSync(new URL("tests/legacy/app.legacy.js", root), "utf8");
 
 export const IMPLS = process.env.IMPL ? process.env.IMPL.split(",") : ["original", "nuevo"];
 
 export async function boot(impl, { state, raw, now }) {
-  const dom = new JSDOM(html, { runScripts: "dangerously", url: "http://localhost/", pretendToBeVisual: true });
+  const dom = new JSDOM(HTML[impl], { runScripts: "dangerously", url: "http://localhost/", pretendToBeVisual: true });
   const win = dom.window, doc = win.document;
   const fixed = Date.parse(now);
   const io = { alerts: [], downloads: [], pdf: [], confirm: true, confirms: [] };
@@ -101,8 +103,20 @@ function makeDriver(win, io) {
 }
 
 /** Todo lo que el usuario ve y puede tocar, en forma comparable. */
-export function snapshot(doc) {
-  const t = (el) => el.textContent.replace(/\s+/g, " ").trim();
+export function snapshot(doc, { sinMoneda = false } = {}) {
+  // sinMoneda: el original solo mostraba moneda y comprobante en la pestaña Resumen (bug:
+  // en las demás pestañas "Guardar" fallaba). La versión nueva los muestra siempre, así que
+  // para comparar con el original se ignoran esos campos.
+  const skip = new Set(sinMoneda ? ["mc", "mx", "vt", "vn", "vp", "vc", "vi"] : []);
+  const keep = (el) => !skip.has(el.id);
+  const t = (el) => {
+    if (skip.size && el.id === "main") {
+      const c = el.cloneNode(true); // solo para el texto; los valores se leen del original
+      skip.forEach((id) => { const e = c.querySelector("#" + id); if (e) e.remove(); });
+      el = c;
+    }
+    return el.textContent.replace(/\s+/g, " ").trim();
+  };
   const ctl = (el) => {
     let s = `${el.tagName.toLowerCase()}#${el.id || ""}[${el.type || ""}] ph=${el.placeholder || ""} v=${el.type === "file" ? "" : el.value}`;
     if (el.type === "checkbox") s += " chk=" + el.checked;
@@ -117,7 +131,7 @@ export function snapshot(doc) {
     equipos: t(doc.getElementById("tb")),
     arriba: [...doc.querySelectorAll(".top select, .top input")].map(ctl),
     texto: t(main),
-    controles: [...main.querySelectorAll("input,select,textarea")].map(ctl),
+    controles: [...main.querySelectorAll("input,select,textarea")].filter(keep).map(ctl),
     botones: [...main.querySelectorAll("button")].map((b) => t(b) + (b.className ? "." + b.className : "")),
     colores: [...main.querySelectorAll(".ok,.ko")].map((e) => e.className + ":" + t(e)),
     barras: [...main.querySelectorAll(".pb i,.br i,.tk")].map((e) => e.className + ":" + e.style.width + e.style.left),
@@ -125,16 +139,13 @@ export function snapshot(doc) {
   };
 }
 
-/** Estado guardado sin ids aleatorios (se reemplazan por #1, #2… según orden de aparición). */
-export function normalizeSaved(o) {
-  const copy = JSON.parse(JSON.stringify(o));
-  delete copy.version;
+/** Quita los ids aleatorios (se reemplazan por #1, #2… según orden de aparición). */
+export function normalizeIds(o) {
   const map = new Map();
-  const tok = (v) => {
-    if (typeof v !== "string" || !/^(?=.*\d)[0-9a-z]{11,}$/.test(v)) return v;
-    if (!map.has(v)) map.set(v, "#" + (map.size + 1));
-    return map.get(v);
-  };
+  const tok = (v) => (typeof v !== "string" ? v : v.replace(/\b(?=[0-9a-z]*\d)[0-9a-z]{11,}\b/g, (id) => {
+    if (!map.has(id)) map.set(id, "#" + (map.size + 1));
+    return map.get(id);
+  }));
   const walk = (x) => {
     if (Array.isArray(x)) return x.map(walk);
     if (x && typeof x === "object") {
@@ -144,5 +155,12 @@ export function normalizeSaved(o) {
     }
     return tok(x);
   };
-  return walk(copy);
+  return walk(JSON.parse(JSON.stringify(o)));
+}
+
+/** Estado guardado comparable: sin ids aleatorios ni número de versión. */
+export function normalizeSaved(o) {
+  const copy = { ...o };
+  delete copy.version;
+  return normalizeIds(copy);
 }

@@ -11,9 +11,9 @@
 <div class="w">
   <div class="top"><h1>🏁 TC <span>Cuentas</span></h1><span class="mu">Turismo Carretera · ARS</span></div>
   <div class="card"><div class="row" id="tb"></div>
-    <div class="row" style="margin-top:8px"><input id="tn" placeholder="Nuevo equipo (ej: Equipo Ford)"><input id="tp" placeholder="Piloto (opcional)"><button class="p" onclick="addTeam()">Agregar equipo</button></div></div>
+    <div class="row" style="margin-top:8px"><input id="tn" placeholder="Nuevo equipo (ej: Equipo Ford)"><input id="tp" placeholder="Piloto (opcional)"><button class="p" data-act="addTeam">Agregar equipo</button></div></div>
   <div id="main"></div>
 </div>
-<script src="src/app.js"></script>
+<script type="module">import { start } from "./src/main.js"; start();</script>
 </body>
 </html>
