@@ -14,8 +14,19 @@ Estructura de app de finanzas con identidad de pista. Pensada primero para el ce
 - Inicio: tarjeta oscura de balance con bandera a cuadros, "A resolver" (vencidos y por vencer en 7 días, con Pagado/Cobrada directo), próxima fecha, gastos por categoría y últimos movimientos.
 - Botón "+" flotante que abre una hoja inferior para cargar o editar movimientos; moneda y comprobante van plegados.
 - Formularios de alta plegados ("+ Nueva carrera", etc.); se abren solos al editar.
-- Tipografía Barlow / Barlow Condensed (Google Fonts, con respaldo del sistema); números tabulares; rojo TC como acento. Colores como variables en `styles.css`, con modo oscuro.
+- Tipografía Barlow / Barlow Condensed (servida desde `assets/fonts/`, no desde Google); números tabulares; rojo TC como acento. Colores como variables en `styles.css`, con modo oscuro.
 - Íconos SVG en línea (`views/icons.js`), sin librerías externas.
+
+## Uso sin señal (PWA)
+
+- `sw.js` (service worker) guarda la app completa en el dispositivo la primera vez que se abre con señal y después la sirve desde ahí: primero caché, después red. Los datos no pasan por el service worker (siguen en localStorage).
+- **Regla:** la página no puede cargar nada de internet. Fuentes en `assets/fonts/`, jsPDF en `vendor/` (se carga recién al exportar un PDF). `tests/pwa.test.js` lo controla.
+- **Después de cambiar cualquier archivo de la app correr `npm run sw:version`.** `VERSION` es un hash del contenido; si queda vieja, el test falla. Con una versión nueva, la app muestra "Hay una versión nueva · Actualizar" y no recarga sola.
+- Archivo nuevo en `src/`, `assets/` o `vendor/` → agregarlo a `FILES` en `sw.js` (el test avisa si falta).
+- `src/pwa.js`: registro, aviso "Sin señal", actualización, pedido de almacenamiento persistente e instalación. El estado se ve en Más → Usar sin señal.
+- Íconos: `npm run icons` los regenera (`scripts/icons.js`); `manifest.webmanifest` describe la app instalable.
+- Los service workers solo andan en `https://` o en `localhost`. Para usarla en el celular hay que publicarla en un hosting con HTTPS.
+- El navegador integrado de la app de Claude no admite service workers: para probar sin señal usar Chrome o Edge (por ejemplo con puppeteer-core y `page.setOfflineMode(true)`).
 
 Lo que hace hoy: equipos con piloto, movimientos de ingreso y gasto (editables), carreras con presupuesto, sede, km y fase, multas y pagos/cobros pendientes con vencimientos, contratos de auspicio con cuotas, inventario de neumáticos y de motores/repuestos, presupuesto por categoría, proyección de temporada, estructura del equipo (dueño del auto, aportes, personal), comprobantes manuales, moneda ARS/USD, exportación CSV y PDF, copia de seguridad JSON.
 
@@ -25,6 +36,8 @@ Lo que hace hoy: equipos con piloto, movimientos de ingreso y gasto (editables),
 - `npm run dev` — servidor local en http://localhost:5173 (los módulos ES no andan abriendo `index.html` con doble clic)
 - `npm test` — todos los tests
 - `npm run check` — chequeo de sintaxis de `src/`
+- `npm run sw:version` — recalcula la versión del service worker (obligatorio después de cambiar archivos de la app)
+- `npm run icons` — regenera los íconos PNG
 
 ## Estructura
 
@@ -79,6 +92,6 @@ Los tests de caracterización y equivalencia comparan contra el original solo lo
 
 1. ~~Refactor, tests y bugs heredados~~ (hecho). Quedan pendientes menores en `docs/REQUISITOS.md`.
 2. Persistencia robusta: pasar de `localStorage` a IndexedDB, con exportación e importación versionada.
-3. Uso sin internet como PWA instalable, porque la señal en el autódromo suele ser mala.
+3. ~~Uso sin internet como PWA instalable~~ (hecho). Falta publicarla en un hosting con HTTPS para usarla en el celular.
 4. Backend con base de datos y cuentas: usuarios, roles (administrador, piloto, contador) y sincronización entre dispositivos. Elegir stack con el usuario.
 5. Solo si equipos reales la usan: pensar en producto (precio, revisión fiscal con un contador, normativa de datos personales).

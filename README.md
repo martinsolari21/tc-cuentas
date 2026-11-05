@@ -13,12 +13,22 @@ npm test         # tests
 npm run check    # verifica la sintaxis de src/
 ```
 
-Hay que abrirla con `npm run dev`: al usar módulos, abrir `index.html` con doble clic ya no funciona. Hace falta internet solo para cargar jsPDF (informe en PDF) desde un CDN.
+Hay que abrirla con `npm run dev`: al usar módulos, abrir `index.html` con doble clic ya no funciona.
+
+## Sin señal
+
+Es una PWA: la primera vez que se abre con señal queda guardada en el dispositivo y después funciona sin conexión (carga de gastos, PDF, todo). Se puede instalar en el celular desde Más → Usar sin señal (en iPhone: Compartir → Agregar a inicio). Para eso tiene que estar publicada en un sitio con `https://`.
+
+Después de cambiar archivos de la app: `npm run sw:version`.
 
 ## Estructura
 
 ```
 index.html          esqueleto de la página
+sw.js               service worker (uso sin señal)
+manifest.webmanifest  datos para instalar la app
+assets/             fuentes e íconos
+vendor/             jsPDF (incluido, sin CDN)
 src/main.js         arranque y render
 src/actions.js      acciones del usuario
 src/calc.js         cálculos

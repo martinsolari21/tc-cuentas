@@ -171,6 +171,16 @@ details.more[open]>summary::after{content:"▴"}
 .card.danger{border-color:var(--ko)}
 .danger-btn{color:var(--ko);border-color:var(--ko);background:transparent}
 
+/* Sin señal, actualización e instalación */
+.net{font-size:12px;font-weight:600;color:#1b1b1a;background:#f0b04a;border-radius:999px;padding:4px 10px;white-space:nowrap}
+.net[hidden]{display:none}
+.card.update{display:flex;align-items:center;justify-content:space-between;gap:12px;border-color:var(--ac)}
+.checks{list-style:none;padding:0;margin:0 0 12px;display:flex;flex-direction:column;gap:8px;font-size:15px}
+.checks li{display:flex;gap:8px}
+.checks li.ok{color:var(--tx)}.checks li.ok>span{color:var(--ok);font-weight:700}
+.card.offline{margin-top:12px}
+.card.offline p{margin:10px 0 0}
+
 /* Barra inferior y botón + */
 .bottomnav{position:fixed;left:0;right:0;bottom:0;z-index:30;background:var(--card);border-top:1px solid var(--bd);display:flex;justify-content:center;padding:4px 4px env(safe-area-inset-bottom,0px)}
 .bottomnav[hidden],.fab[hidden]{display:none}

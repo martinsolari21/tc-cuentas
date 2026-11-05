@@ -14,6 +14,7 @@ import { viewInventario } from "./views/inventario.js";
 import { viewPresupuesto } from "./views/presupuesto.js";
 import { viewEquipo } from "./views/equipo.js";
 import { viewReportes } from "./views/reportes.js";
+import { applyUpdate, askPersist, initPWA, install, pwa } from "./pwa.js";
 
 const VIEWS = {
   res: viewResumen, mov: viewMovimientos, car: viewCarreras, pen: viewPendientes, mas: viewMas,
@@ -30,6 +31,8 @@ export function start() {
   document.addEventListener("click", onEvent);
   document.addEventListener("change", onEvent);
   document.addEventListener("keydown", (e) => { if (e.key === "Escape" && S.sheet) { actions.closeSheet(S); render(); } });
+  initPWA(render);
+  if (pwa.installed) askPersist(render);
   render();
 }
 
@@ -40,6 +43,9 @@ function onEvent(e) {
   const name = el.getAttribute(attr);
   if (name === "hint") return updateHint();
   if (name === "impF") return importBackup(S, el.files[0], () => { writeSaved(S); render(); });
+  if (name === "appUpdate") return applyUpdate();
+  if (name === "appInstall") return install(render);
+  if (name === "appPersist") return askPersist(render);
   const prevView = S.view;
   const next = actions[name](S, el, { m: fmt() });
   if (next === "save") writeSaved(S);
@@ -48,6 +54,7 @@ function onEvent(e) {
 }
 
 function render() {
+  renderNetwork();
   $("tb").innerHTML = S.teams.map((t) => '<button class="chip-btn' + (t.id === S.sel ? " on" : "") + '" data-act="pick" data-i="' + t.id + '"' + (t.id === S.sel ? ' aria-pressed="true"' : "") + ">" + esc(t.name) + "</button>").join("")
     || '<span class="mu">Creá tu primer equipo para empezar.</span>';
   const t = find(S.teams, S.sel);
@@ -64,15 +71,30 @@ function render() {
   }
 
   renderDisplayControls();
-  const ctx = { S, t, m: fmt(), races: teamRaces(S, t.id), ref: today(), tot: totals(teamMoves(S, t.id)) };
+  const ctx = { S, t, m: fmt(), races: teamRaces(S, t.id), ref: today(), tot: totals(teamMoves(S, t.id)), pwa };
   const view = VIEWS[S.view] || viewResumen;
-  main.innerHTML = pageTitle(S.view) + view(ctx);
+  main.innerHTML = updateBanner() + pageTitle(S.view) + view(ctx);
   $("bottom").innerHTML = bottomNav(ctx);
   const sheet = $("sheet");
   sheet.innerHTML = moveSheet(ctx);
   sheet.className = S.sheet ? "open" : "";
   document.body.classList.toggle("sheet-open", !!S.sheet);
   updateHint();
+}
+
+/** Aviso "Sin señal" en la barra superior: la app sigue andando y guarda en el teléfono. */
+function renderNetwork() {
+  let el = $("net");
+  if (!el) {
+    document.querySelector(".top").insertAdjacentHTML("afterbegin", '<span id="net" class="net" role="status" title="Sin conexión: todo se guarda en este dispositivo"></span>');
+    el = $("net");
+  }
+  el.textContent = pwa.online ? "" : "Sin señal";
+  el.hidden = pwa.online;
+}
+
+function updateBanner() {
+  return pwa.update ? '<div class="card update" role="status"><span><b>Hay una versión nueva</b><br><span class="mu small">Tus datos no se tocan.</span></span><button class="p" data-act="appUpdate">Actualizar</button></div>' : "";
 }
 
 /** Moneda de visualización y cotización de referencia, en la barra superior. */

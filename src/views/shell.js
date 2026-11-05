@@ -74,9 +74,25 @@ export function hintHTML({ S, rid, m }) {
 }
 
 /** Pantalla "Más": accesos a las secciones que no están en la barra inferior. */
-export function viewMas() {
+export function viewMas({ pwa }) {
   return '<h1 class="page-title">Más</h1><div class="tiles">' + MORE.map(([k, name, ic, desc]) =>
-    '<button class="tile" data-act="setView" data-v="' + k + '">' + ic + '<span class="tl"><span class="tn">' + name + '</span><span class="td">' + desc + "</span></span>" + ICON.chevron + "</button>").join("") + "</div>";
+    '<button class="tile" data-act="setView" data-v="' + k + '">' + ic + '<span class="tl"><span class="tn">' + name + '</span><span class="td">' + desc + "</span></span>" + ICON.chevron + "</button>").join("") + "</div>"
+    + offlineCard(pwa);
+}
+
+/** Estado del uso sin señal e instalación en el celular. */
+function offlineCard(p) {
+  const row = (ok, text) => '<li class="' + (ok ? "ok" : "mu") + '"><span aria-hidden="true">' + (ok ? "✓" : "○") + "</span> " + text + "</li>";
+  return '<section class="card offline"><h2>Usar sin señal</h2><ul class="checks">'
+    + row(p.offlineReady, p.offlineReady ? "La app está guardada en este dispositivo: abre sin conexión." : "Abrila una vez con señal para guardarla en este dispositivo.")
+    + row(true, "Tus datos se guardan en este dispositivo, no en internet.")
+    + row(p.persisted === true, p.persisted === true ? "El navegador no va a borrar tus datos para liberar espacio." : "El navegador podría borrar datos si se queda sin espacio.")
+    + row(p.installed, p.installed ? "Instalada como app." : "Instalala para abrirla desde la pantalla de inicio.")
+    + "</ul>"
+    + '<div class="row">' + (p.canInstall ? '<button class="p" data-act="appInstall">Instalar app</button>' : "")
+    + (p.persisted === false ? '<button data-act="appPersist">Proteger mis datos</button>' : "") + "</div>"
+    + (p.ios ? '<p class="mu small">En iPhone: tocá Compartir y después “Agregar a inicio”.</p>' : "")
+    + '<p class="mu small">Sin señal no se pierde nada, pero los datos están solo en este dispositivo: descargá una copia desde Reportes de vez en cuando.</p></section>';
 }
 
 /** Título de sección con volver a "Más" para las vistas que viven ahí. */

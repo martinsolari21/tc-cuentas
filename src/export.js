@@ -31,9 +31,22 @@ export function exportCSV(S, t, ref) {
   download("movimientos-" + slug(t.name) + "-" + ref + ".csv", movesCSV(S, t.id));
 }
 
-export function exportPDF(S, t, m, ref) {
-  const J = window.jspdf;
-  if (!J) { window.alert("No se pudo cargar el generador de PDF."); return; }
+/**
+ * jsPDF pesa ~360 KB: se carga recién la primera vez que se exporta un PDF (desde la app
+ * misma, así funciona sin señal una vez instalada).
+ */
+function withJsPDF(fn) {
+  if (window.jspdf) return fn(window.jspdf);
+  const s = document.createElement("script");
+  s.src = "vendor/jspdf.umd.min.js";
+  s.onload = () => (window.jspdf ? fn(window.jspdf) : window.alert("No se pudo cargar el generador de PDF."));
+  s.onerror = () => window.alert("No se pudo cargar el generador de PDF.");
+  document.head.appendChild(s);
+}
+
+export function exportPDF(S, t, m, ref) { withJsPDF((J) => buildPDF(J, S, t, m, ref)); }
+
+function buildPDF(J, S, t, m, ref) {
   const d = new J.jsPDF();
   let y = 16;
   const ln = (s, b) => {
