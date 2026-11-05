@@ -1,0 +1,10 @@
+{
+  "name": "tc-cuentas",
+  "version": "0.3.0",
+  "private": true,
+  "description": "Gestión de cuentas para equipos de Turismo Carretera",
+  "scripts": {
+    "dev": "npx --yes serve . -l 5173",
+    "check": "node --check src/app.js"
+  }
+}
