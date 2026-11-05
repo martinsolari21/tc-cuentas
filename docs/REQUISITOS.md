@@ -35,11 +35,16 @@ Estado: ✅ hecho en el prototipo · 🟡 hecho con limitaciones · ⬜ pendient
 ## Pendientes conocidos
 
 - Al eliminar un equipo quedan huérfanos sus pendientes, contratos, inventarios y configuración.
+- **"Hoy" se calcula en UTC.** Después de las 21 h (hora argentina) los movimientos se guardan con la fecha de mañana y los avisos de vencimiento se corren un día.
+- **Importar una copia mezcla en vez de reemplazar.** Si la copia no trae `pend`, `cons`, `tires`, `parts` o `cfg` (copias de etapas viejas), quedan los datos actuales de esas listas.
+- **El estado de la interfaz se guarda con los datos** (`edit`, `view`, `type`, `race`) y viaja en las copias JSON.
+- **Cuotas a fin de mes:** una cuota del 31/01 pasa al 03/03 en vez del 28/02.
+- Editar un registro de neumáticos cargado como gasto no actualiza ese gasto.
 - Falta validación de entradas (montos negativos, fechas incoherentes, CUIT con formato inválido).
-- Falta migración de datos versionada.
-- Sin tests.
 - Sin accesibilidad revisada (etiquetas, foco, contraste).
 - Sin uso offline real.
+
+Resuelto en el refactor: migración versionada (`version` en los datos, `migrate()` en `src/state.js`), tests, y el error al tocar "Guardar" en el formulario de movimiento fuera de la pestaña Resumen.
 
 ## Próximos requisitos (no implementados)
 
