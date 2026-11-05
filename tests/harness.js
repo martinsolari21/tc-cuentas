@@ -10,6 +10,9 @@ const page = (f) => readFileSync(new URL(f, root), "utf8").replace(/<script\b[\s
 const HTML = { original: page("tests/legacy/index.legacy.html"), nuevo: page("index.html") };
 const legacyCode = readFileSync(new URL("tests/legacy/app.legacy.js", root), "utf8");
 
+// Nombres de secciones que cambiaron con el rediseño (en el original todo estaba en "Resumen").
+const TAB_ALIAS = { Resumen: ["Inicio"], Inicio: ["Resumen"], Movimientos: ["Resumen"] };
+
 export const IMPLS = process.env.IMPL ? process.env.IMPL.split(",") : ["original", "nuevo"];
 
 export async function boot(impl, { state, raw, ui, now }) {
@@ -80,15 +83,31 @@ function makeDriver(win, io) {
     /** Clic en el botón con ese texto dentro de la tarjeta que contiene #id. */
     clickNear(id, text) { pick(byId(id).closest(".card").querySelectorAll("button"), text, "#" + id).click(); return this; },
     /** Clic en el botón de la fila (tr o tarjeta) que contiene el texto. */
-    clickIn(rowText, text, sel = "tr") {
+    clickIn(rowText, text, sel = "tr, .item") {
       const rows = [...doc.querySelectorAll(sel)].filter((r) => r.textContent.includes(rowText) && r.querySelector("button"));
       const row = rows[rows.length - 1];
       if (!row) throw new Error("No hay fila con " + rowText);
       pick(row.querySelectorAll("button"), text, rowText).click();
       return this;
     },
-    tab(name) { pick(doc.querySelectorAll(".tabs button"), name, "pestañas").click(); return this; },
-    inputsIn(rowText, sel = "tr") {
+    /**
+     * Va a una sección. Sirve para las pestañas del original y para la barra inferior y el
+     * menú "Más" de la versión nueva. Acepta "Pendientes (3)" o "Pendientes".
+     */
+    tab(name) {
+      const norm = (s) => s.replace(/\s+/g, " ").trim().replace(/\s*\(?\d+\)?$/, "");
+      const label = (b) => norm((b.querySelector(".tn, .nl") || b).textContent);
+      const want = norm(name);
+      const names = [want, ...(TAB_ALIAS[want] || [])];
+      const nav = () => [...doc.querySelectorAll('.tabs button, [data-act="setView"]')];
+      const find = () => { for (const n of names) { const b = nav().find((x) => label(x) === n); if (b) return b; } return null; };
+      let b = find();
+      if (!b) { const mas = nav().find((x) => label(x) === "Más"); if (mas) { mas.click(); b = find(); } }
+      if (!b) throw new Error("No hay sección " + name);
+      b.click();
+      return this;
+    },
+    inputsIn(rowText, sel = "tr, .item") {
       const row = [...doc.querySelectorAll(sel)].filter((r) => r.textContent.includes(rowText)).pop();
       return [...row.querySelectorAll("input")];
     },
@@ -178,6 +197,6 @@ export function normalizeIds(o) {
  */
 export function normalizeSaved(o) {
   const copy = { ...o };
-  for (const k of ["version", "type", "race", "edit"]) delete copy[k];
+  for (const k of ["version", "type", "race", "edit", "view"]) delete copy[k];
   return normalizeIds(copy);
 }

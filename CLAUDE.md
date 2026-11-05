@@ -4,7 +4,18 @@ App de gestión de cuentas para equipos de Turismo Carretera (TC, Argentina). Id
 
 ## Estado actual
 
-Página única sin build ni framework, sin servidor: HTML + CSS + módulos ES nativos. Nació como un Artifact de Claude en tres etapas; en noviembre de 2026 se refactorizó a módulos sin cambiar el comportamiento (verificado con tests que comparan contra el prototipo original).
+Página única sin build ni framework, sin servidor: HTML + CSS + módulos ES nativos. Nació como un Artifact de Claude en tres etapas; en noviembre de 2026 se refactorizó a módulos sin cambiar el comportamiento (verificado con tests que comparan contra el prototipo original), y después se rediseñó la interfaz.
+
+## Diseño ("Box TC")
+
+Estructura de app de finanzas con identidad de pista. Pensada primero para el celular.
+- Barra superior oscura (marca, moneda de visualización) y fila de equipos como chips.
+- Barra inferior: Inicio, Carreras, Movimientos, Pendientes (con contador) y Más (Contratos, Inventario, Presupuesto, Equipo, Reportes).
+- Inicio: tarjeta oscura de balance con bandera a cuadros, "A resolver" (vencidos y por vencer en 7 días, con Pagado/Cobrada directo), próxima fecha, gastos por categoría y últimos movimientos.
+- Botón "+" flotante que abre una hoja inferior para cargar o editar movimientos; moneda y comprobante van plegados.
+- Formularios de alta plegados ("+ Nueva carrera", etc.); se abren solos al editar.
+- Tipografía Barlow / Barlow Condensed (Google Fonts, con respaldo del sistema); números tabulares; rojo TC como acento. Colores como variables en `styles.css`, con modo oscuro.
+- Íconos SVG en línea (`views/icons.js`), sin librerías externas.
 
 Lo que hace hoy: equipos con piloto, movimientos de ingreso y gasto (editables), carreras con presupuesto, sede, km y fase, multas y pagos/cobros pendientes con vencimientos, contratos de auspicio con cuotas, inventario de neumáticos y de motores/repuestos, presupuesto por categoría, proyección de temporada, estructura del equipo (dueño del auto, aportes, personal), comprobantes manuales, moneda ARS/USD, exportación CSV y PDF, copia de seguridad JSON.
 
@@ -27,15 +38,16 @@ src/format.js        moneda es-AR, fechas, CSV, ids
 src/clock.js         "hoy" (los tests lo fijan)
 src/constants.js     categorías, fases, estados, referencias del reglamento
 src/export.js        CSV, PDF (jsPDF por CDN) y copia JSON
-src/views/*.js       una vista por pestaña + shell.js (encabezado, formulario, pestañas) y ui.js
+src/views/*.js       una vista por sección + shell.js (balance, barra inferior, Más, hoja de movimiento), ui.js e icons.js
 tests/caracterizacion.test.js  comportamiento fijado; corre contra el original y el nuevo
-tests/equivalencia.test.js     mismos escenarios en ambos: pantalla y datos guardados iguales
+tests/equivalencia.test.js     mismos escenarios en ambos: datos guardados y descargas iguales
+tests/interfaz.test.js         barra inferior, botón +, hoja de movimiento, A resolver y Más
 tests/calc.test.js             unitarios de cálculos, formato y migración
 tests/arreglos.test.js         cambios de comportamiento intencionales
 tests/legacy/                  copia congelada del prototipo original (no editar)
 ```
 
-Para agregar una acción: función en `actions.js` y un botón con `data-act="nombre"` (o un campo con `data-change`). Para agregar una pestaña: vista en `src/views/`, entrada en `TABS` (`views/shell.js`) y en `VIEWS` (`main.js`).
+Para agregar una acción: función en `actions.js` y un botón con `data-act="nombre"` (o un campo con `data-change`). Para agregar una sección: vista en `src/views/`, entrada en `NAV` (barra inferior) o `MORE` (menú Más) en `views/shell.js`, y en `VIEWS` (`main.js`).
 
 ## Modelo de datos
 

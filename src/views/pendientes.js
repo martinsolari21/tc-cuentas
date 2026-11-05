@@ -12,7 +12,7 @@ function pendForm({ S, races }) {
   const p = e || { kind: "p" };
   const f = (e && p.fine) || null;
   const isFine = p.kind === "f";
-  return '<div class="card"><h2>' + (e ? "Editar pendiente" : "Nuevo pago, cobro o multa pendiente") + '</h2><div class="row">'
+  return '<details class="card add"' + (e ? " open" : "") + "><summary>" + (e ? "Editar pendiente" : "Nuevo pago, cobro o multa pendiente") + '</summary><div class="row">'
     + '<select id="pk" data-change="pkch">' + [["p", "Pago a proveedor"], ["c", "Cobro pendiente"], ["f", "Multa"]].map(([v, l]) => '<option value="' + v + '"' + (p.kind === v ? " selected" : "") + ">" + l + "</option>").join("") + "</select>"
     + '<select id="pcat"' + (isFine ? ' style="display:none"' : "") + ">" + options(pendCats(p.kind), e ? p.cat : undefined) + "</select>"
     + '<input id="pa" type="number" min="0" inputmode="decimal" placeholder="Monto ARS"' + (e ? val(p.amt) : "") + ">"
@@ -25,7 +25,7 @@ function pendForm({ S, races }) {
     + '<input id="fa" placeholder="Artículo infringido (opcional)"' + (f ? val(f.art || "") : "") + ">"
     + '<label class="mu">Notificada <input id="fn" type="date" data-change="fineNotified"' + (f ? val(f.notif || "") : "") + "></label>"
     + '<select id="fs"><option value="pend"' + (f && f.st === "pend" ? " selected" : "") + '>Pendiente</option><option value="apel"' + (f && f.st === "apel" ? " selected" : "") + ">Apelada</option></select></div>"
-    + '<div class="row" style="margin-top:8px">' + submit("addPend", "Agregar", !!e) + "</div></div>";
+    + '<div class="row" style="margin-top:8px">' + submit("addPend", "Agregar", !!e) + "</div></details>";
 }
 
 /** Al cambiar el tipo de pendiente: cambia las categorías y muestra u oculta los datos de multa. */
@@ -41,7 +41,7 @@ export function onKindChange(doc, keep) {
 export function viewPendientes({ S, t, m, races, ref }) {
   const L = ofTeam(S.pend, t.id).sort((a, b) => ((a.due || "9") > (b.due || "9") ? 1 : -1));
   const { pay, collect } = pendTotals(L);
-  return pendForm({ S, races })
+  return '<h1 class="page-title">Pendientes</h1>' + pendForm({ S, races })
     + '<div class="card"><h2>Pendientes</h2><div class="row mu" style="margin-bottom:8px"><span>Por pagar: <b class="ko">' + m(pay) + '</b></span><span>Por cobrar: <b class="ok">' + m(collect) + "</b></span></div>"
     + (L.length
       ? '<div class="sc"><table><tr><th></th><th>Detalle</th><th>Vencimiento</th><th style="text-align:right">Monto</th><th></th></tr>'

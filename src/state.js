@@ -16,7 +16,7 @@ export const UI_KEYS = ["sel", "view", "disp", "fxref"];
 export function emptyState() {
   return {
     teams: [], moves: [], races: [], pend: [], cons: [], tires: [], parts: [], cfg: {},
-    sel: null, type: "g", view: "res", race: "", edit: null, disp: "ARS", fxref: 0,
+    sel: null, type: "g", view: "res", race: "", edit: null, sheet: false, disp: "ARS", fxref: 0,
   };
 }
 

@@ -5,8 +5,8 @@ import { find, teamMoves, teamRaces, totals } from "./calc.js";
 import { loadState } from "./state.js";
 import { readSaved, writeSaved } from "./storage.js";
 import { actions, importBackup } from "./actions.js";
-import { alertsCard, header, hintHTML, moveForm, tabs } from "./views/shell.js";
-import { viewResumen } from "./views/resumen.js";
+import { bottomNav, hintHTML, moveSheet, pageTitle, viewMas } from "./views/shell.js";
+import { viewMovimientos, viewResumen } from "./views/resumen.js";
 import { viewCarreras } from "./views/carreras.js";
 import { viewPendientes } from "./views/pendientes.js";
 import { viewContratos } from "./views/contratos.js";
@@ -16,8 +16,8 @@ import { viewEquipo } from "./views/equipo.js";
 import { viewReportes } from "./views/reportes.js";
 
 const VIEWS = {
-  res: viewResumen, car: viewCarreras, pen: viewPendientes, con: viewContratos,
-  inv: viewInventario, pre: viewPresupuesto, eq: viewEquipo, rep: viewReportes,
+  res: viewResumen, mov: viewMovimientos, car: viewCarreras, pen: viewPendientes, mas: viewMas,
+  con: viewContratos, inv: viewInventario, pre: viewPresupuesto, eq: viewEquipo, rep: viewReportes,
 };
 
 let S;
@@ -29,6 +29,7 @@ export function start() {
   S = loadState(saved.data, saved.ui);
   document.addEventListener("click", onEvent);
   document.addEventListener("change", onEvent);
+  document.addEventListener("keydown", (e) => { if (e.key === "Escape" && S.sheet) { actions.closeSheet(S); render(); } });
   render();
 }
 
@@ -39,34 +40,51 @@ function onEvent(e) {
   const name = el.getAttribute(attr);
   if (name === "hint") return updateHint();
   if (name === "impF") return importBackup(S, el.files[0], () => { writeSaved(S); render(); });
+  const prevView = S.view;
   const next = actions[name](S, el, { m: fmt() });
   if (next === "save") writeSaved(S);
   if (next) render();
+  if (next && S.view !== prevView) window.scrollTo(0, 0);
 }
 
 function render() {
-  $("tb").innerHTML = S.teams.map((t) => '<button class="' + (t.id === S.sel ? "p" : "") + '" data-act="pick" data-i="' + t.id + '">' + esc(t.name) + "</button>").join("")
+  $("tb").innerHTML = S.teams.map((t) => '<button class="chip-btn' + (t.id === S.sel ? " on" : "") + '" data-act="pick" data-i="' + t.id + '"' + (t.id === S.sel ? ' aria-pressed="true"' : "") + ">" + esc(t.name) + "</button>").join("")
     || '<span class="mu">Creá tu primer equipo para empezar.</span>';
   const t = find(S.teams, S.sel);
   const main = $("main");
-  if (!t) { main.innerHTML = ""; return; }
+  const chrome = !!t;
+  $("bottom").hidden = !chrome;
+  $("fab").hidden = !chrome;
+  document.body.classList.toggle("has-nav", chrome);
+  if (!t) {
+    main.innerHTML = '<div class="empty big"><span class="flag xl" aria-hidden="true"></span><b>Empezá creando tu equipo</b><span class="mu">Tocá “+ Equipo”, poné el nombre y el piloto. Después cargás carreras, gastos e ingresos.</span></div>';
+    $("sheet").innerHTML = "";
+    document.querySelector(".addteam").open = true;
+    return;
+  }
 
   renderDisplayControls();
   const ctx = { S, t, m: fmt(), races: teamRaces(S, t.id), ref: today(), tot: totals(teamMoves(S, t.id)) };
   const view = VIEWS[S.view] || viewResumen;
-  main.innerHTML = alertsCard(ctx) + header(ctx) + moveForm(ctx) + tabs(ctx) + view(ctx);
+  main.innerHTML = pageTitle(S.view) + view(ctx);
+  $("bottom").innerHTML = bottomNav(ctx);
+  const sheet = $("sheet");
+  sheet.innerHTML = moveSheet(ctx);
+  sheet.className = S.sheet ? "open" : "";
+  document.body.classList.toggle("sheet-open", !!S.sheet);
   updateHint();
 }
 
-/** Selector de moneda de visualización y cotización de referencia, arriba a la derecha. */
+/** Moneda de visualización y cotización de referencia, en la barra superior. */
 function renderDisplayControls() {
   if (!$("dp")) {
     document.querySelector(".top").insertAdjacentHTML("beforeend",
-      '<span class="row"><select id="dp" data-change="setDisp"><option>ARS</option><option>USD</option></select>'
-      + '<input id="fr" type="number" min="0" placeholder="Cotiz. USD ref." style="max-width:130px" data-change="setFx"></span>');
+      '<label class="sr-only" for="dp">Mostrar montos en</label><select id="dp" data-change="setDisp"><option>ARS</option><option>USD</option></select>'
+      + '<label class="sr-only" for="fr">Cotización de referencia</label><input id="fr" type="number" min="0" inputmode="decimal" placeholder="Cotiz. USD ref." data-change="setFx">');
   }
   $("dp").value = S.disp;
   $("fr").value = S.fxref || "";
+  $("fr").hidden = S.disp !== "USD";
 }
 
 /** Aviso de presupuesto restante según la carrera elegida en el formulario de movimiento. */
@@ -75,4 +93,3 @@ function updateHint() {
   S.race = rid;
   $("hint").innerHTML = hintHTML({ S, rid, m: fmt() });
 }
-

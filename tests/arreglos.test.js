@@ -42,7 +42,7 @@ test("los datos se guardan sin el estado de la interfaz", async () => {
   assert.deepEqual(ui, { sel: "tA", view: "pre", disp: "USD", fxref: 0 });
   // Al volver a abrir se recuerdan la pestaña y la moneda.
   const b = await boot("nuevo", { raw: JSON.stringify(data), ui: JSON.stringify(ui), now: NOW });
-  assert.equal(b.doc.querySelector(".tabs .on").textContent, "Presupuesto");
+  assert.equal(b.doc.querySelector(".page-title").textContent, "Presupuesto");
   assert.equal(b.doc.getElementById("dp").value, "USD");
 });
 
@@ -69,7 +69,7 @@ test("importar: si el equipo elegido no está en la copia, se elige el primero",
   const a = await nuevo({ state: { ...sampleState(), sel: "tB" } });
   a.tab("Reportes");
   await a.importJSON(JSON.stringify(stage1State()));
-  assert.match(a.text(), /Equipo Viejo/);
+  assert.equal(a.doc.querySelector("#tb .on").textContent, "Equipo Viejo");
 });
 
 test("importar: cancelar no cambia nada", async () => {
@@ -83,7 +83,7 @@ test("importar: cancelar no cambia nada", async () => {
 
 test("eliminar un equipo borra también sus pendientes, contratos, inventario y configuración", async () => {
   const a = await nuevo();
-  a.click("Eliminar equipo");
+  a.tab("Equipo").click("Eliminar equipo");
   const s = a.saved();
   assert.deepEqual(s.teams.map((t) => t.id), ["tB"]);
   for (const k of ["moves", "races", "pend", "cons", "tires", "parts"]) assert.ok(s[k].every((x) => x.team !== "tA"), k);

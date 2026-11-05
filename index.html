@@ -3,17 +3,34 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#16181c">
 <title>TC Cuentas · Turismo Carretera</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=Barlow:wght@400;500;600&display=swap">
 <link rel="stylesheet" href="src/styles.css">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 </head>
 <body>
+<header class="appbar">
+  <div class="appbar-in">
+    <div class="brand"><span class="flag" aria-hidden="true"></span>TC <span>Cuentas</span></div>
+    <div class="top"></div>
+  </div>
+</header>
 <div class="w">
-  <div class="top"><h1>🏁 TC <span>Cuentas</span></h1><span class="mu">Turismo Carretera · ARS</span></div>
-  <div class="card"><div class="row" id="tb"></div>
-    <div class="row" style="margin-top:8px"><input id="tn" placeholder="Nuevo equipo (ej: Equipo Ford)"><input id="tp" placeholder="Piloto (opcional)"><button class="p" data-act="addTeam">Agregar equipo</button></div></div>
-  <div id="main"></div>
+  <nav class="teams" aria-label="Equipos">
+    <div class="chips" id="tb"></div>
+    <details class="addteam">
+      <summary>+ Equipo</summary>
+      <div class="row"><input id="tn" placeholder="Nuevo equipo (ej: Equipo Ford)"><input id="tp" placeholder="Piloto (opcional)"><button class="p" data-act="addTeam">Agregar equipo</button></div>
+    </details>
+  </nav>
+  <main id="main"></main>
 </div>
+<div id="sheet"></div>
+<button class="fab" id="fab" data-act="openSheet" aria-label="Nuevo movimiento" hidden><svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg></button>
+<nav class="bottomnav" id="bottom" aria-label="Secciones" hidden></nav>
 <script type="module">import { start } from "./src/main.js"; start();</script>
 </body>
 </html>

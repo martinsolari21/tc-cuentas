@@ -1,9 +1,10 @@
 // Equivalencia: corre los mismos escenarios en el prototipo original y en la versión
-// refactorizada, y después de cada paso compara todo lo visible (textos, campos, valores,
-// colores, barras) y todo lo guardado en localStorage.
+// actual, y después de cada paso compara los datos guardados, los avisos y las descargas.
+// Hasta el refactor también se comparaba la pantalla; desde el rediseño "Box TC" la pantalla
+// es otra a propósito, así que se comparan los resultados, no el HTML.
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { boot, snapshot, normalizeSaved, normalizeIds } from "./harness.js";
+import { boot, normalizeSaved } from "./harness.js";
 import { sampleState, stage1State, NOW } from "./fixtures.js";
 
 const soloDatos = (o) => Object.fromEntries(["teams", "moves", "races", "pend", "cons", "tires", "parts", "cfg"].map((k) => [k, o[k]]));
@@ -15,7 +16,7 @@ async function trace(impl, init, steps) {
   const out = [];
   // La copia JSON nueva lleva "version" y no lleva el estado de la interfaz: se comparan solo los datos.
   const record = (label) => {
-    out.push({ label, snap: normalizeIds(a.snapshot()), snapSinMoneda: normalizeIds(snapshot(a.doc, { sinMoneda: true })), saved: normalizeSaved(a.saved() || {}), io: { alerts: [...a.io.alerts], downloads: a.io.downloads.map((d) => d.name + ":" + (d.name.endsWith(".json") ? JSON.stringify(soloDatos(JSON.parse(d.data))) : d.data)), pdf: [...a.io.pdf] } });
+    out.push({ label, saved: normalizeSaved(a.saved() || {}), io: { alerts: [...a.io.alerts], downloads: a.io.downloads.map((d) => d.name + ":" + (d.name.endsWith(".json") ? JSON.stringify(soloDatos(JSON.parse(d.data))) : d.data)), pdf: [...a.io.pdf] } });
   };
   record("inicio");
   for (const [label, fn] of steps) {
@@ -28,9 +29,6 @@ async function trace(impl, init, steps) {
 async function same(init, steps) {
   const [o, n] = [await trace("original", init, steps), await trace("nuevo", init, steps)];
   for (let k = 0; k < o.length; k++) {
-    const sinMoneda = !o[k].snap.controles.some((c) => c.startsWith("select#mc"));
-    const ns = sinMoneda ? n[k].snapSinMoneda : n[k].snap;
-    assert.deepEqual(ns, o[k].snap, `pantalla distinta después de: ${o[k].label}`);
     assert.deepEqual(n[k].saved, o[k].saved, `datos guardados distintos después de: ${o[k].label}`);
     assert.deepEqual(n[k].io, o[k].io, `avisos/descargas distintos después de: ${o[k].label}`);
   }
@@ -58,6 +56,7 @@ test("movimientos: alta, aviso de presupuesto, edición y baja", () => same(samp
   ["ingreso", (a) => a.click("Ingreso")],
   ["guardar ingreso", (a) => a.fill({ a: "250000", c: "Premio" }).click("Guardar")],
   ["sin monto no guarda", (a) => a.fill({ a: "" }).click("Guardar")],
+  ["lista completa", (a) => a.tab("Movimientos")],
   ["editar", (a) => a.clickIn("Hotel Viedma", "✎")],
   ["guardar edición", (a) => a.fill({ nt: "Hotel 2 noches", a: "900000" }).click("Guardar cambios")],
   ["editar y cancelar", (a) => a.clickIn("Nafta", "✎")],
@@ -133,7 +132,7 @@ test("equipos: alta y baja", () => same(sample(), [
   ["sin nombre", (a) => a.click("Agregar equipo")],
   ["alta", (a) => a.fill({ tn: "Equipo Dodge", tp: "Ana Gómez" }).click("Agregar equipo")],
   ["guardar gasto", (a) => a.fill({ a: "5000" }).click("Guardar")],
-  ["baja", (a) => a.click("Eliminar equipo")],
+  // Eliminar equipo cambió a propósito (ya no deja huérfanos): ver arreglos.test.js.
 ]));
 
 test("reportes: exportaciones en USD e importación", () => same({ state: { ...sampleState(), disp: "USD", fxref: 1000 } }, [

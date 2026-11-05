@@ -15,15 +15,19 @@ for (const impl of IMPLS) {
     test("resumen: ingresos, gastos y balance en ARS", async () => {
       const a = await start(impl);
       const t = nbsp(a.text());
-      assert.match(t, /Ingresos\$ 8\.500\.000Gastos\$ 13\.000\.000Balance-\$ 4\.500\.000/);
+      assert.match(t, /Ingresos\$ 8\.500\.000/);
+      assert.match(t, /Gastos\$ 13\.000\.000/);
+      assert.match(t, /Balance[a-z ]{0,25}-\$ 4\.500\.000/);
       assert.match(t, /Gastos por categoríaMotor\$ 4\.500\.000Neumáticos\$ 3\.000\.000/);
-      assert.match(t, /⚠ 2 vencidos · 1 por vencer en 7 días/);
+      assert.match(t, /2 vencidos · 1 por vencer en 7 días/);
     });
 
     test("moneda: mostrar en USD divide por la cotización de referencia", async () => {
       const a = await start(impl, { ...sampleState(), disp: "USD", fxref: 1000 });
       const t = nbsp(a.text());
-      assert.match(t, /IngresosUS\$ 8\.500GastosUS\$ 13\.000Balance-US\$ 4\.500/);
+      assert.match(t, /IngresosUS\$ 8\.500(?!\.)/);
+      assert.match(t, /GastosUS\$ 13\.000(?!\.)/);
+      assert.match(t, /Balance[a-z ]{0,25}-US\$ 4\.500(?!\.)/);
       // Sin cotización de referencia sigue en ARS aunque se elija USD.
       const b = await start(impl, { ...sampleState(), disp: "USD", fxref: 0 });
       assert.match(nbsp(b.text()), /Ingresos\$ 8\.500\.000/);

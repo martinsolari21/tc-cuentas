@@ -7,7 +7,7 @@ import { diffCell, options, progress, submit, val } from "./ui.js";
 function raceForm({ S }) {
   const e = S.edit && S.edit.k === "r" ? find(S.races, S.edit.id) : null;
   const r = e || {};
-  return '<div class="card"><h2>Nueva carrera</h2><div class="row">'
+  return '<details class="card add"' + (e ? " open" : "") + "><summary>" + (e ? "Editar carrera" : "Nueva carrera") + '</summary><div class="row">'
     + '<input id="rn" placeholder="Carrera (ej: Fecha 3 · Rafaela)"' + (e ? val(r.name) : "") + ">"
     + '<input id="rd" type="date"' + (e ? val(r.date || "") : "") + ">"
     + '<input id="rb" type="number" min="0" inputmode="decimal" placeholder="Presupuesto ARS (opcional)"' + (e ? val(r.budget || "") : "") + ">"
@@ -15,7 +15,7 @@ function raceForm({ S }) {
     + '<input id="rk" type="number" min="0" placeholder="Km de traslado"' + (e ? val(r.km || "") : "") + ">"
     + '<select id="rf">' + options(FASES, e ? r.fase || FASES[0] : undefined) + "</select>"
     + '<input id="rr" placeholder="Resultado final (opcional)"' + (e ? val(r.res || "") : "") + ">"
-    + submit("addRace", "Agregar", !!e) + "</div></div>";
+    + submit("addRace", "Agregar", !!e) + "</div></details>";
 }
 
 /** Sede, fase, km, resultado y costo por km de una carrera. */
@@ -30,9 +30,9 @@ function raceInfo(S, t, r, s, m) {
   return h;
 }
 
-function raceCard(S, t, r, m) {
+function raceCard(S, t, r, m, k) {
   const s = spent(S, t.id, r.id), b = r.budget, p = b > 0 ? s / b * 100 : 0;
-  return '<div class="card"><div class="row" style="justify-content:space-between"><b>' + esc(r.name) + '</b><span class="mu">' + fd(r.date) + "</span></div>"
+  return '<div class="card race"><div class="race-head"><span class="pos num" aria-hidden="true">' + (k + 1) + '</span><b class="race-name">' + esc(r.name) + '</b><span class="mu small">' + fd(r.date) + "</span></div>"
     + raceInfo(S, t, r, s, m)
     + '<div class="row" style="margin-top:6px"><span>Gastado <b class="ko">' + m(s) + '</b></span><label class="mu">Presupuesto <input type="number" min="0" value="' + (b || "") + '" placeholder="Sin presupuesto" data-change="setBud" data-i="' + r.id + '" style="max-width:150px"></label>'
     + '<button data-act="useRace" data-i="' + r.id + '">Cargar gasto</button><button class="g" data-act="delRace" data-i="' + r.id + '">Eliminar</button><button class="g" data-act="editRace" data-i="' + r.id + '">Editar</button></div>'
@@ -67,5 +67,5 @@ function costTable(S, t, rs, m) {
 }
 
 export function viewCarreras({ S, t, m, races }) {
-  return raceForm({ S }) + races.map((r) => raceCard(S, t, r, m)).join("") + comparison(S, t, races, m) + costTable(S, t, races, m);
+  return '<h1 class="page-title">Carreras</h1>' + raceForm({ S }) + (races.length ? "" : '<div class="empty"><b>Agregá la primera fecha</b><span class="mu">Con presupuesto, sede y km para ver el costo por km.</span></div>') + races.map((r, k) => raceCard(S, t, r, m, k)).join("") + comparison(S, t, races, m) + costTable(S, t, races, m);
 }

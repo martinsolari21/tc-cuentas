@@ -11,11 +11,11 @@ function tires({ S, t, m, races }) {
   const e = S.edit && S.edit.k === "t" ? find(S.tires, S.edit.id) : null;
   let tn = 0, tr = 0, tc = 0;
   L.forEach((x) => { tn += x.nw; tr += x.rs; tc += x.cost; });
-  return '<div class="card"><h2>Neumáticos por carrera</h2><div class="row"><select id="ir">' + raceOptions(races, e ? e.race || "" : undefined) + "</select>"
+  return '<div class="card"><h2>Neumáticos por carrera</h2><details class="add-in"' + (e ? " open" : "") + "><summary>" + (e ? "Editar registro" : "Agregar neumáticos") + '</summary><div class="row"><select id="ir">' + raceOptions(races, e ? e.race || "" : undefined) + "</select>"
     + '<input id="inw" type="number" min="0" placeholder="Nuevos comprados"' + (e ? val(e.nw) : "") + ">"
     + '<input id="irs" type="number" min="0" placeholder="Resellados de la anterior"' + (e ? val(e.rs) : "") + ">"
     + '<input id="ic" type="number" min="0" placeholder="Costo ARS"' + (e ? val(e.cost || "") : "") + ">"
-    + '<label class="mu"><input id="ik" type="checkbox" style="flex:0"> Cargar también como gasto</label>' + submit("addTire", "Agregar", !!e) + "</div>"
+    + '<label class="mu"><input id="ik" type="checkbox" style="flex:0"> Cargar también como gasto</label>' + submit("addTire", "Agregar", !!e) + "</div></details>"
     + '<div class="mu" style="margin:6px 0"><small>Referencia: por fecha se usan 6 neumáticos nuevos sellados por la ACTC y se pueden resellar 6 de la anterior. Verificá el reglamento vigente.</small></div>'
     + (L.length
       ? '<div class="sc"><table><tr><th>Carrera</th><th class="n">Nuevos</th><th class="n">Resellados</th><th class="n">Costo</th><th class="n">Por nuevo</th><th></th></tr>'
@@ -28,12 +28,12 @@ function tires({ S, t, m, races }) {
 function parts({ S, t, m }) {
   const P = ofTeam(S.parts, t.id);
   const e = S.edit && S.edit.k === "x" ? find(S.parts, S.edit.id) : null;
-  return '<div class="card"><h2>Motores y repuestos</h2><div class="row"><select id="xk">' + options(["Motor", "Repuesto"], e ? e.kind : undefined) + "</select>"
+  return '<div class="card"><h2>Motores y repuestos</h2><details class="add-in"' + (e ? " open" : "") + "><summary>" + (e ? "Editar ítem" : "Agregar motor o repuesto") + '</summary><div class="row"><select id="xk">' + options(["Motor", "Repuesto"], e ? e.kind : undefined) + "</select>"
     + '<input id="xi" placeholder="Identificación (ej: Motor 3)"' + (e ? val(e.ident) : "") + ">"
     + '<input id="xr" type="number" min="0" placeholder="Carreras de uso"' + (e ? val(e.races) : "") + ">"
     + '<select id="xs">' + options(EST, e ? e.state : undefined) + "</select>"
     + '<input id="xc" type="number" min="0" placeholder="Costo ARS"' + (e ? val(e.cost || "") : "") + ">"
-    + '<label class="mu">Últ. reconstrucción <input id="xd" type="date"' + (e ? val(e.rebuild || "") : "") + "></label>" + submit("addPart", "Agregar", !!e) + "</div>"
+    + '<label class="mu">Últ. reconstrucción <input id="xd" type="date"' + (e ? val(e.rebuild || "") : "") + "></label>" + submit("addPart", "Agregar", !!e) + "</div></details>"
     + (P.length
       ? '<div class="row" style="margin:8px 0"><button data-act="closeRace">+1 carrera a los que están En uso</button></div><div class="sc"><table><tr><th>Tipo</th><th>Identificación</th><th class="n">Carreras</th><th>Estado</th><th class="n">Costo</th><th>Últ. reconstr.</th><th></th></tr>'
         + P.map((p) => {

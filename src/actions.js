@@ -51,8 +51,11 @@ export const actions = {
 
   // ---- Navegación ----
   setType(S, el) { S.type = el.dataset.v; return "draw"; },
-  setView(S, el) { S.edit = null; S.view = el.dataset.v; return "draw"; },
-  cancel(S) { S.edit = null; return "draw"; },
+  setView(S, el) { S.edit = null; S.sheet = false; S.view = el.dataset.v; return "draw"; },
+  /** Abre la hoja de movimiento vacía (el botón +). */
+  openSheet(S) { if (S.edit && S.edit.k === "m") S.edit = null; S.sheet = true; return "draw"; },
+  closeSheet(S) { if (S.edit && S.edit.k === "m") S.edit = null; S.sheet = false; return "draw"; },
+  cancel(S) { if (S.edit && S.edit.k === "m") S.sheet = false; S.edit = null; return "draw"; },
   setDisp(S, el) { S.disp = el.value; return "save"; },
   setFx(S, el) { S.fxref = parseFloat(el.value) || 0; return "save"; },
 
@@ -69,6 +72,7 @@ export const actions = {
     };
     S.race = o.race;
     upsert(S, S.moves, "m", o);
+    S.sheet = false;
     return "save";
   },
   delMove(S, el) { S.moves = S.moves.filter((x) => x.id !== el.dataset.i); return "save"; },
@@ -77,8 +81,7 @@ export const actions = {
     S.edit = { k: "m", id: x.id };
     S.type = x.type;
     S.race = x.race || "";
-    S.view = "res";
-    top();
+    S.sheet = true;
     return "draw";
   },
   /** "Completar con el restante" del aviso de presupuesto. */
@@ -101,7 +104,7 @@ export const actions = {
     if (S.race === i) S.race = "";
     return "save";
   },
-  useRace(S, el) { S.race = el.dataset.i; S.type = "g"; S.view = "res"; top(); return "draw"; },
+  useRace(S, el) { S.race = el.dataset.i; S.type = "g"; S.edit = null; S.sheet = true; return "draw"; },
   editRace(S, el) { return startEdit(S, "r", el.dataset.i, "car"); },
 
   // ---- Pendientes ----

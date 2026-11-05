@@ -23,5 +23,6 @@ export function viewEquipo({ S, t, m }) {
         + c.staff.map((s) => "<tr><td>" + esc(s.name) + "</td><td>" + esc(s.rol || "–") + '</td><td class="n">' + m(s.pago) + '</td><td class="n">' + m(s.viat) + '</td><td class="n">' + m(s.pago + s.viat) + '</td><td class="n"><button class="g" data-act="delIn" data-v="staff" data-i="' + s.id + '">✕</button></td></tr>').join("")
         + '<tr><th colspan="4">Costo de personal por carrera' + (c.total ? " · temporada (" + c.total + ")" : "") + '</th><th class="n">' + m(pc) + (c.total ? " · " + m(pc * c.total) : "") + "</th><th></th></tr></table></div>"
       : "")
-    + "</div>";
+    + "</div>"
+    + '<div class="card danger"><h2>Zona de peligro</h2><p class="mu small">Borra el equipo con todos sus movimientos, carreras, pendientes, contratos, inventario y configuración. Descargá una copia antes desde Reportes.</p><button class="danger-btn" data-act="delTeam">Eliminar equipo</button></div>';
 }
