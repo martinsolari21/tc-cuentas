@@ -2,6 +2,7 @@
 // como lo haría un usuario: completa campos, dispara "change" y hace clic en botones.
 import { readFileSync } from "node:fs";
 import { JSDOM } from "jsdom";
+import { NOW } from "./fixtures.js";
 
 const root = new URL("../", import.meta.url);
 const page = (f) => readFileSync(new URL(f, root), "utf8").replace(/<script\b[\s\S]*?<\/script>/g, "");
@@ -93,8 +94,12 @@ function makeDriver(win, io) {
     async importJSON(text) {
       const input = doc.querySelector('input[type="file"]');
       Object.defineProperty(input, "files", { value: [new win.File([text], "copia.json", { type: "application/json" })], configurable: true });
+      // FileReader es asíncrono: esperar a que cambien los datos guardados o aparezca un aviso.
+      const before = [win.localStorage.getItem("tc-cuentas"), io.alerts.length, io.confirms.length];
       fire(input, "change");
-      await new Promise((r) => setTimeout(r, 30));
+      const done = () => win.localStorage.getItem("tc-cuentas") !== before[0] || io.alerts.length > before[1] || (io.confirms.length > before[2] && !io.confirm);
+      for (let t = 0; t < 400 && !done(); t++) await new Promise((r) => setTimeout(r, 5));
+      await new Promise((r) => setTimeout(r, 5));
     },
     saved() { return JSON.parse(win.localStorage.getItem("tc-cuentas")); },
     text(sel = "#main") { return doc.querySelector(sel).textContent.replace(/\s+/g, " ").trim(); },
@@ -142,7 +147,9 @@ export function snapshot(doc, { sinMoneda = false } = {}) {
 /** Quita los ids aleatorios (se reemplazan por #1, #2… según orden de aparición). */
 export function normalizeIds(o) {
   const map = new Map();
-  const tok = (v) => (typeof v !== "string" ? v : v.replace(/\b(?=[0-9a-z]*\d)[0-9a-z]{11,}\b/g, (id) => {
+  // Los ids nuevos son el reloj fijo de los tests en base 36 + 0 a 4 caracteres al azar.
+  const re = new RegExp("\\b" + Date.parse(NOW).toString(36) + "[0-9a-z]{0,4}\\b", "g");
+  const tok = (v) => (typeof v !== "string" ? v : v.replace(re, (id) => {
     if (!map.has(id)) map.set(id, "#" + (map.size + 1));
     return map.get(id);
   }));
