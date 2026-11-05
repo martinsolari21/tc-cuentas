@@ -6,15 +6,16 @@ import assert from "node:assert/strict";
 import { boot, snapshot, normalizeSaved, normalizeIds } from "./harness.js";
 import { sampleState, stage1State, NOW } from "./fixtures.js";
 
+const soloDatos = (o) => Object.fromEntries(["teams", "moves", "races", "pend", "cons", "tires", "parts", "cfg"].map((k) => [k, o[k]]));
 const onchange = (name) => `[onchange*="${name}"], [data-change="${name}"]`;
 const changeSel = (a, name, v, i = 0) => a.changeEl(a.doc.querySelectorAll(onchange(name))[i], v);
 
 async function trace(impl, init, steps) {
   const a = await boot(impl, { now: NOW, ...init });
   const out = [];
-  // La copia JSON nueva lleva "version"; se ignora al comparar descargas.
+  // La copia JSON nueva lleva "version" y no lleva el estado de la interfaz: se comparan solo los datos.
   const record = (label) => {
-    out.push({ label, snap: normalizeIds(a.snapshot()), snapSinMoneda: normalizeIds(snapshot(a.doc, { sinMoneda: true })), saved: normalizeSaved(a.saved() || {}), io: { alerts: [...a.io.alerts], downloads: a.io.downloads.map((d) => d.name + ":" + String(d.data).replace(/,"version":1/, "")), pdf: [...a.io.pdf] } });
+    out.push({ label, snap: normalizeIds(a.snapshot()), snapSinMoneda: normalizeIds(snapshot(a.doc, { sinMoneda: true })), saved: normalizeSaved(a.saved() || {}), io: { alerts: [...a.io.alerts], downloads: a.io.downloads.map((d) => d.name + ":" + (d.name.endsWith(".json") ? JSON.stringify(soloDatos(JSON.parse(d.data))) : d.data)), pdf: [...a.io.pdf] } });
   };
   record("inicio");
   for (const [label, fn] of steps) {
@@ -140,7 +141,7 @@ test("reportes: exportaciones en USD e importación", () => same({ state: { ...s
   ["csv", (a) => a.click("Movimientos (CSV)")],
   ["pdf", (a) => a.click("Informe (PDF)")],
   ["json", (a) => a.click("Descargar copia (JSON)")],
-  ["importar copia vieja", (a) => a.importJSON(JSON.stringify(stage1State()))],
+  // Importar cambió a propósito (reemplaza en vez de mezclar): ver arreglos.test.js.
 ]));
 
 test("copia de la etapa 1", () => same({ state: stage1State() }, ["Resumen", "Pendientes", "Contratos", "Inventario", "Presupuesto", "Equipo", "Reportes", "Carreras"].map((n) => [n, (a) => a.tab(n)])));

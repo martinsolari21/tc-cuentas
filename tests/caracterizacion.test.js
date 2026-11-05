@@ -91,12 +91,12 @@ for (const impl of IMPLS) {
     test("cuotas: división en cuotas mensuales con el resto en la última", async () => {
       const a = await start(impl);
       a.tab("Contratos");
-      a.fill({ cs: "Shell", cn: "", ct: "1000000", cf: "2026-01-15", cu: "", cq: "3", c1: "2026-01-31", cd: "" }).click("Agregar contrato");
+      a.fill({ cs: "Shell", cn: "", ct: "1000000", cf: "2026-01-10", cu: "", cq: "3", c1: "2026-01-15", cd: "" }).click("Agregar contrato");
       const c = a.saved().cons.at(-1);
       assert.deepEqual(c.inst.map((i) => [i.date, i.amt, i.paid]), [
-        ["2026-01-31", 333333, false],
-        ["2026-03-03", 333333, false], // comportamiento actual: 31/01 + 1 mes desborda a marzo
-        ["2026-03-31", 333334, false],
+        ["2026-01-15", 333333, false],
+        ["2026-02-15", 333333, false],
+        ["2026-03-15", 333334, false],
       ]);
     });
 
@@ -157,7 +157,7 @@ for (const impl of IMPLS) {
       a.set("mx", "1600").click("Guardar cambios");
       const mv = a.saved().moves.find((m) => m.id === "m4");
       assert.equal(mv.amt, 4800000);
-      assert.equal(a.saved().edit, null);
+      assert.equal(a.doc.querySelector('[data-act="addMove"], [onclick="addMove()"]').textContent, "Guardar"); // salió de edición
     });
 
     test("inventario: neumáticos cargados también como gasto", async () => {

@@ -4,7 +4,7 @@
 import { today } from "./clock.js";
 import { addDays, newId, toARS } from "./format.js";
 import { find, ofTeam, splitInstallments, teamCfg } from "./calc.js";
-import { isBackup } from "./state.js";
+import { isBackup, replaceData } from "./state.js";
 import { onKindChange } from "./views/pendientes.js";
 import { exportCSV, exportJSON, exportPDF } from "./export.js";
 
@@ -40,10 +40,12 @@ export const actions = {
   delTeam(S) {
     const t = cur(S);
     if (!t || !window.confirm("¿Eliminar " + t.name + " y todos sus datos?")) return;
-    S.moves = S.moves.filter((x) => x.team !== t.id);
-    S.races = S.races.filter((x) => x.team !== t.id);
+    for (const k of ["moves", "races", "pend", "cons", "tires", "parts"]) S[k] = S[k].filter((x) => x.team !== t.id);
+    delete S.cfg[t.id];
     S.teams = S.teams.filter((x) => x.id !== t.id);
     S.sel = S.teams.length ? S.teams[0].id : null;
+    S.edit = null;
+    S.race = "";
     return "save";
   },
 
@@ -228,8 +230,7 @@ export function importBackup(S, file, done) {
       const o = JSON.parse(r.result);
       if (!isBackup(o)) throw new Error("copia inválida");
       if (!window.confirm("Esto reemplaza TODOS los datos actuales por los de la copia. ¿Continuar?")) return;
-      Object.assign(S, o);
-      S.edit = null;
+      replaceData(S, o);
       done();
     } catch (e) {
       window.alert("El archivo no es una copia válida de TC Cuentas.");

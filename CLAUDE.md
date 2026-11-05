@@ -37,9 +37,11 @@ tests/legacy/                  copia congelada del prototipo original (no editar
 
 Para agregar una acción: función en `actions.js` y un botón con `data-act="nombre"` (o un campo con `data-change`). Para agregar una pestaña: vista en `src/views/`, entrada en `TABS` (`views/shell.js`) y en `VIEWS` (`main.js`).
 
-## Modelo de datos (objeto `S`, guardado en localStorage `tc-cuentas`)
+## Modelo de datos
 
-- `version` — versión de la estructura (hoy 1). Cambiar la estructura = subir `DATA_VERSION` y agregar el paso en `migrate()`.
+En memoria hay un objeto `S` con datos y estado de interfaz. Se guarda separado: los datos en localStorage `tc-cuentas` (lo mismo que va en la copia JSON) y las preferencias de pantalla en `tc-cuentas-ui` (no viajan en las copias).
+
+- `version` — versión de la estructura (hoy 2). Cambiar la estructura = subir `DATA_VERSION` y agregar el paso en `migrate()` (`src/state.js`), con test en `tests/calc.test.js`. Sin versión o v1 = datos y estado de interfaz juntos.
 - `teams[]` `{id, name, pilot}`
 - `moves[]` `{id, team, type:"i"|"g", cat, amt (en ARS), cur, usd, fx, race, date, note, vt, vn, vp, vc, vi, ci?}`
 - `races[]` `{id, team, name, date, budget, sede, km, fase, res}`
@@ -47,11 +49,12 @@ Para agregar una acción: función en `actions.js` y un botón con `data-act="no
 - `cons[]` contratos con `inst[]` (cuotas). Cobrar una cuota crea un `move` de Auspicio con `ci` apuntando a la cuota.
 - `tires[]`, `parts[]` inventarios.
 - `cfg[teamId]` `{bud:{categoría:monto}, total, owner, aport[], staff[]}`
-- Estado de UI: `sel`, `type`, `view`, `race`, `edit`, `disp`, `fxref` (hoy se guarda junto con los datos; ver bugs conocidos).
+- Preferencias de pantalla guardadas en `tc-cuentas-ui`: `sel`, `view`, `disp`, `fxref`. Estado pasajero, no se guarda: `type`, `race`, `edit`.
+- Fechas: texto `AAAA-MM-DD`. "Hoy" es la fecha local del dispositivo (`clock.js`); las cuentas de fechas se hacen sin hora, en UTC (`format.js`).
 
-## Bugs conocidos (heredados, todavía sin arreglar)
+## Cambios de comportamiento respecto del prototipo
 
-Están fijados por los tests de caracterización a propósito; al arreglar uno, mover su test a `tests/arreglos.test.js`. Lista completa en `docs/REQUISITOS.md`: fecha de hoy en UTC, importar mezcla en vez de reemplazar, estado de UI dentro de los datos, cuotas a fin de mes, huérfanos al borrar un equipo.
+Los tests de caracterización y equivalencia comparan contra el original solo lo que no cambió a propósito. Lo que cambió a propósito está en `tests/arreglos.test.js`: guardar desde cualquier pestaña, "hoy" en hora local, cuotas a fin de mes, datos separados de la interfaz, importar reemplaza todo y borrar un equipo borra todos sus datos. Al arreglar algo más, su test va ahí.
 
 ## Reglas que no se negocian
 
@@ -62,7 +65,7 @@ Están fijados por los tests de caracterización a propósito; al arreglar uno, 
 
 ## Hoja de ruta
 
-1. ~~Refactor y tests~~ (hecho). Siguiente: arreglar los bugs conocidos.
+1. ~~Refactor, tests y bugs heredados~~ (hecho). Quedan pendientes menores en `docs/REQUISITOS.md`.
 2. Persistencia robusta: pasar de `localStorage` a IndexedDB, con exportación e importación versionada.
 3. Uso sin internet como PWA instalable, porque la señal en el autódromo suele ser mala.
 4. Backend con base de datos y cuentas: usuarios, roles (administrador, piloto, contador) y sincronización entre dispositivos. Elegir stack con el usuario.

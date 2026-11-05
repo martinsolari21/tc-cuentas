@@ -12,7 +12,7 @@ const legacyCode = readFileSync(new URL("tests/legacy/app.legacy.js", root), "ut
 
 export const IMPLS = process.env.IMPL ? process.env.IMPL.split(",") : ["original", "nuevo"];
 
-export async function boot(impl, { state, raw, now }) {
+export async function boot(impl, { state, raw, ui, now }) {
   const dom = new JSDOM(HTML[impl], { runScripts: "dangerously", url: "http://localhost/", pretendToBeVisual: true });
   const win = dom.window, doc = win.document;
   const fixed = Date.parse(now);
@@ -20,6 +20,7 @@ export async function boot(impl, { state, raw, now }) {
 
   if (raw != null) win.localStorage.setItem("tc-cuentas", raw);
   else if (state) win.localStorage.setItem("tc-cuentas", JSON.stringify(state));
+  if (ui != null) win.localStorage.setItem("tc-cuentas-ui", ui);
 
   win.confirm = (q) => { io.confirms.push(q); return io.confirm; };
   win.alert = (q) => { io.alerts.push(q); };
@@ -101,7 +102,13 @@ function makeDriver(win, io) {
       for (let t = 0; t < 400 && !done(); t++) await new Promise((r) => setTimeout(r, 5));
       await new Promise((r) => setTimeout(r, 5));
     },
-    saved() { return JSON.parse(win.localStorage.getItem("tc-cuentas")); },
+    /** Datos guardados, con las preferencias de pantalla (clave aparte en la versión nueva) mezcladas. */
+    saved() {
+      const d = JSON.parse(win.localStorage.getItem("tc-cuentas"));
+      const u = JSON.parse(win.localStorage.getItem("tc-cuentas-ui"));
+      return d && u ? { ...d, ...u } : d;
+    },
+    raw(key = "tc-cuentas") { return JSON.parse(win.localStorage.getItem(key)); },
     text(sel = "#main") { return doc.querySelector(sel).textContent.replace(/\s+/g, " ").trim(); },
     snapshot() { return snapshot(doc); },
   };
@@ -165,9 +172,12 @@ export function normalizeIds(o) {
   return walk(JSON.parse(JSON.stringify(o)));
 }
 
-/** Estado guardado comparable: sin ids aleatorios ni número de versión. */
+/**
+ * Estado guardado comparable: sin ids aleatorios, sin número de versión y sin el estado
+ * pasajero de la interfaz (type, race, edit), que la versión nueva ya no guarda.
+ */
 export function normalizeSaved(o) {
   const copy = { ...o };
-  delete copy.version;
+  for (const k of ["version", "type", "race", "edit"]) delete copy[k];
   return normalizeIds(copy);
 }

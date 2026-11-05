@@ -1,4 +1,6 @@
 // Datos de ejemplo para los tests. "Hoy" en los tests es 2026-03-10 (ver NOW).
+// Los tests corren con la hora de Argentina, sin importar la zona de la máquina.
+process.env.TZ = "America/Argentina/Buenos_Aires";
 export const NOW = "2026-03-10T15:00:00Z";
 
 export function sampleState() {

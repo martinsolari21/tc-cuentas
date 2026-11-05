@@ -25,7 +25,8 @@ const $ = (id) => document.getElementById(id);
 const fmt = () => (n) => money(n, S.disp, S.fxref);
 
 export function start() {
-  S = loadState(readSaved());
+  const saved = readSaved();
+  S = loadState(saved.data, saved.ui);
   document.addEventListener("click", onEvent);
   document.addEventListener("change", onEvent);
   render();

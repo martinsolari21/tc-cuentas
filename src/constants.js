@@ -1,6 +1,8 @@
 // Listas fijas de la app. El orden de las categorías es el que se ve en los formularios.
 export const STORAGE_KEY = "tc-cuentas";
-export const DATA_VERSION = 1;
+export const UI_STORAGE_KEY = "tc-cuentas-ui";
+/** 1: prototipo refactorizado. 2: datos sin estado de interfaz. */
+export const DATA_VERSION = 2;
 
 export const CATS = {
   i: ["Auspicio", "Premio", "Aporte", "Otro ingreso"],

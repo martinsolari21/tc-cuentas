@@ -3,7 +3,7 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 import { alertCounts, contractPending, costPerKm, logistics, pendTotals, projection, realByCat, spent, splitInstallments, teamRaces, totals } from "../src/calc.js";
 import { addDays, addMonths, csvq, daysLeft, esc, fd, money, toARS } from "../src/format.js";
-import { loadState, migrate } from "../src/state.js";
+import { dataOf, loadState, migrate } from "../src/state.js";
 import { sampleState, stage1State } from "./fixtures.js";
 
 const nb = (s) => s.replace(/ /g, " ");
@@ -22,7 +22,11 @@ test("fechas", () => {
   assert.equal(fd(""), "");
   assert.equal(addDays("2026-03-01", 30), "2026-03-31");
   assert.equal(addMonths("2026-01-15", 1), "2026-02-15");
-  assert.equal(addMonths("2026-01-31", 1), "2026-03-03"); // comportamiento heredado (ver bugs conocidos)
+  assert.equal(addMonths("2026-01-31", 1), "2026-02-28"); // último día del mes
+  assert.equal(addMonths("2026-01-31", 2), "2026-03-31"); // se cuenta desde la fecha original
+  assert.equal(addMonths("2028-01-31", 1), "2028-02-29"); // bisiesto
+  assert.equal(addMonths("2026-11-30", 3), "2027-02-28"); // cambio de año
+  assert.equal(addDays("2026-12-31", 1), "2027-01-01");
   assert.equal(daysLeft("2026-03-05", "2026-03-10"), -5);
   assert.equal(daysLeft("2026-03-14", "2026-03-10"), 4);
 });
@@ -75,15 +79,26 @@ test("migración: copia de la etapa 1 conserva todo y suma lo que falta", () => 
   const S = loadState(JSON.stringify(stage1State()));
   const old = stage1State();
   assert.deepEqual([S.teams, S.moves, S.races], [old.teams, old.moves, old.races]);
-  assert.deepEqual([S.pend, S.cons, S.tires, S.parts, S.cfg, S.disp, S.fxref, S.version], [[], [], [], [], {}, "ARS", 0, 1]);
+  assert.deepEqual([S.pend, S.cons, S.tires, S.parts, S.cfg, S.disp, S.fxref], [[], [], [], [], {}, "ARS", 0]);
+  assert.equal(S.view, "car"); // la interfaz guardada junto a los datos (antes de v2) se respeta
   assert.equal(S.edit, null);
 });
 
-test("migración: datos actuales quedan iguales", () => {
-  const orig = sampleState();
-  const S = migrate(sampleState());
-  delete S.version;
-  assert.deepEqual(S, orig);
+test("migración: los datos v1 pasan a v2 sin perder nada ni arrastrar la interfaz", () => {
+  const old = sampleState();
+  const d = migrate(old);
+  assert.equal(d.version, 2);
+  for (const k of ["teams", "moves", "races", "pend", "cons", "tires", "parts", "cfg"]) assert.deepEqual(d[k], old[k], k);
+  for (const k of ["sel", "view", "type", "race", "edit", "disp", "fxref"]) assert.ok(!(k in d), k);
+  assert.deepEqual(dataOf(loadState(JSON.stringify(old))), d);
+});
+
+test("migración: v2 toma la interfaz de su propia clave y valida el equipo elegido", () => {
+  const data = JSON.stringify(migrate(sampleState()));
+  const S = loadState(data, JSON.stringify({ sel: "tB", view: "pre", disp: "USD", fxref: 1200 }));
+  assert.deepEqual([S.sel, S.view, S.disp, S.fxref], ["tB", "pre", "USD", 1200]);
+  assert.equal(loadState(data, JSON.stringify({ sel: "borrado" })).sel, "tA");
+  assert.equal(loadState(data, "{roto").view, "res");
 });
 
 test("migración: datos ilegibles o vacíos arrancan sin equipos", () => {

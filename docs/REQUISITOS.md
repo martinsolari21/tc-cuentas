@@ -34,17 +34,20 @@ Estado: ✅ hecho en el prototipo · 🟡 hecho con limitaciones · ⬜ pendient
 
 ## Pendientes conocidos
 
-- Al eliminar un equipo quedan huérfanos sus pendientes, contratos, inventarios y configuración.
-- **"Hoy" se calcula en UTC.** Después de las 21 h (hora argentina) los movimientos se guardan con la fecha de mañana y los avisos de vencimiento se corren un día.
-- **Importar una copia mezcla en vez de reemplazar.** Si la copia no trae `pend`, `cons`, `tires`, `parts` o `cfg` (copias de etapas viejas), quedan los datos actuales de esas listas.
-- **El estado de la interfaz se guarda con los datos** (`edit`, `view`, `type`, `race`) y viaja en las copias JSON.
-- **Cuotas a fin de mes:** una cuota del 31/01 pasa al 03/03 en vez del 28/02.
+- Los equipos borrados con la versión vieja pueden haber dejado pendientes, contratos o inventario huérfanos en los datos guardados. No se ven en la app y no se borran solos.
 - Editar un registro de neumáticos cargado como gasto no actualiza ese gasto.
 - Falta validación de entradas (montos negativos, fechas incoherentes, CUIT con formato inválido).
 - Sin accesibilidad revisada (etiquetas, foco, contraste).
 - Sin uso offline real.
 
-Resuelto en el refactor: migración versionada (`version` en los datos, `migrate()` en `src/state.js`), tests, y el error al tocar "Guardar" en el formulario de movimiento fuera de la pestaña Resumen.
+Resuelto (noviembre 2026):
+- Refactor a módulos con tests y migración versionada (`version` en los datos, `migrate()` en `src/state.js`).
+- "Guardar" en el formulario de movimiento fallaba fuera de la pestaña Resumen.
+- "Hoy" se calculaba en UTC: después de las 21 h los movimientos quedaban con la fecha de mañana.
+- Importar una copia mezclaba en vez de reemplazar: quedaban pendientes, contratos, inventario o configuración actuales.
+- El estado de la interfaz se guardaba con los datos y viajaba en las copias JSON. Ahora va en una clave aparte.
+- Cuotas a fin de mes: una cuota del 31/01 pasaba al 03/03. Ahora cae el último día del mes.
+- Al eliminar un equipo quedaban huérfanos sus pendientes, contratos, inventario y configuración.
 
 ## Próximos requisitos (no implementados)
 

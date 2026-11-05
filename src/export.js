@@ -1,5 +1,6 @@
 // Exportación: CSV de movimientos, informe PDF (jsPDF desde CDN) y copia JSON.
 import { csvq, fd } from "./format.js";
+import { dataOf } from "./state.js";
 import { ofTeam, raceName, spent, sum, teamCfg, teamRaces, totalExpense, totalIncome } from "./calc.js";
 
 /** Descarga un archivo generado en el navegador. */
@@ -64,5 +65,5 @@ export function exportPDF(S, t, m, ref) {
 }
 
 export function exportJSON(S, ref) {
-  download("tc-cuentas-copia-" + ref + ".json", JSON.stringify(S));
+  download("tc-cuentas-copia-" + ref + ".json", JSON.stringify(dataOf(S)));
 }
