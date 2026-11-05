@@ -49,6 +49,7 @@ function onEvent(e) {
   const prevView = S.view;
   const next = actions[name](S, el, { m: fmt() });
   if (next === "save") writeSaved(S);
+  if (name === "addTeam" && next) document.querySelector(".addteam").open = false; // equipo creado: plegar el formulario
   if (next) render();
   if (next && S.view !== prevView) window.scrollTo(0, 0);
 }

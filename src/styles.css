@@ -24,7 +24,7 @@
 *,*::before,*::after{box-sizing:border-box}
 html{-webkit-text-size-adjust:100%}
 body{margin:0;background:var(--bg);color:var(--tx);font:16px/1.45 var(--f-body);-webkit-tap-highlight-color:transparent}
-body.has-nav{padding-bottom:calc(var(--nav-h) + 40px + env(safe-area-inset-bottom,0px))}
+body.has-nav{padding-bottom:calc(var(--nav-h) + 96px + env(safe-area-inset-bottom,0px))}
 body.sheet-open{overflow:hidden}
 .w{max-width:720px;margin:0 auto;padding:12px 16px 24px}
 .num{font-variant-numeric:tabular-nums}

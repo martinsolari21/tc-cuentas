@@ -4,7 +4,7 @@
 // VERSION se calcula a partir del contenido de FILES: después de cambiar cualquier
 // archivo de la app, correr `npm run sw:version` (un test avisa si quedó desactualizada).
 // Así cada cambio publica una versión nueva y la app ofrece "Actualizar".
-const VERSION = "7b47db61acd1";
+const VERSION = "6a3398b0b3fb";
 const CACHE = "tc-cuentas-" + VERSION;
 
 // "./" es la página (index.html). No se lista "index.html" aparte: muchos servidores lo
