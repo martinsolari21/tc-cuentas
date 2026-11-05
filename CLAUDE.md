@@ -88,10 +88,17 @@ Los tests de caracterización y equivalencia comparan contra el original solo lo
 - La interfaz se mantiene en español rioplatense y los montos con formato `es-AR`.
 - La app guarda CUIT y datos de terceros: tratarlos como datos personales y no enviarlos a ningún servicio externo sin decisión explícita.
 
+## Publicación
+
+- Sitio: https://martinsolari21.github.io/tc-cuentas/ · Repositorio público: https://github.com/martinsolari21/tc-cuentas
+- Cada push a `main` corre `.github/workflows/publicar.yml`: chequeo de sintaxis, `sw-version --check`, tests y, si pasan, publica solo los archivos de la app (index, sw, manifest, assets, src, vendor). Tests y docs no se publican.
+- Commits con el email privado de GitHub (`63853459+martinsolari21@users.noreply.github.com`, configurado en este repo): no usar los emails personales en un repo público.
+- `gh` está en `C:Program FilesGitHub CLIgh.exe`. Los permisos para crear/ver el repo, la API de Pages, las ejecuciones de Actions y `git push` a main están en `.claude/settings.local.json` (no se sube).
+
 ## Hoja de ruta
 
 1. ~~Refactor, tests y bugs heredados~~ (hecho). Quedan pendientes menores en `docs/REQUISITOS.md`.
 2. Persistencia robusta: pasar de `localStorage` a IndexedDB, con exportación e importación versionada.
-3. ~~Uso sin internet como PWA instalable~~ (hecho). Falta publicarla en un hosting con HTTPS para usarla en el celular.
+3. ~~Uso sin internet como PWA instalable~~ (hecho, publicada en GitHub Pages).
 4. Backend con base de datos y cuentas: usuarios, roles (administrador, piloto, contador) y sincronización entre dispositivos. Elegir stack con el usuario.
 5. Solo si equipos reales la usan: pensar en producto (precio, revisión fiscal con un contador, normativa de datos personales).
